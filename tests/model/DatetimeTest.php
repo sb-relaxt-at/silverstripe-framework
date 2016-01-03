@@ -195,11 +195,12 @@ class SS_DatetimeTest extends SapphireTest {
 
 		$memberID = $this->logInWithPermission();
 		$member = DataObject::get_by_id('Member', $memberID);
-		$member->DateFormat = 'dd/MM/YYYY';
+		$member->DateFormat = 'dd/MM/yyyy';
 		$member->TimeFormat = 'hh:mm:ss';
 		$member->write();
 
 		$fixtures = array(
+			'2016-01-01 10:11:01' => '01/01/2016 10:11:01', // testcase to check for missmatch between iso year and calendar year
 			'2000-12-31 10:11:01' => '31/12/2000 10:11:01',
 			'2000-12-31 1:11:01' => '31/12/2000 01:11:01',
 			'12/12/2000 1:11:01' => '12/12/2000 01:11:01',
