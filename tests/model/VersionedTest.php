@@ -210,7 +210,8 @@ class VersionedTest extends SapphireTest {
 	}
 
 	public function testRollbackTo() {
-		$page1 = $this->objFromFixture('VersionedTest_DataObject', 'page1');
+		//$page1 = $this->objFromFixture('VersionedTest_DataObject', 'page1');
+		$page1 = VersionedTest_AnotherSubclass::create();
 		$page1->Content = 'orig';
 		$page1->write();
 		$page1->publish('Stage', 'Live');
@@ -227,6 +228,17 @@ class VersionedTest extends SapphireTest {
 
 		$this->assertTrue($page1->Version > $changedVersion, 'Create a new higher version number');
 		$this->assertEquals('orig', $page1->Content, 'Copies the content from the old version');
+
+		// check db entries
+		$version = DB::prepared_query("SELECT MAX(\"Version\") FROM \"VersionedTest_DataObject_versions\" WHERE \"RecordID\" = ?",
+			array($page1->ID)
+		)->value();
+		$this->assertEquals($page1->Version, $version, 'Correct entry in VersionedTest_DataObject_versions');
+
+		$version = DB::prepared_query("SELECT MAX(\"Version\") FROM \"VersionedTest_AnotherSubclass_versions\" WHERE \"RecordID\" = ?",
+			array($page1->ID)
+		)->value();
+		$this->assertEquals($page1->Version, $version, 'Correct entry in VersionedTest_AnotherSubclass_versions');
 	}
 
 	public function testDeleteFromStage() {
@@ -320,6 +332,7 @@ class VersionedTest extends SapphireTest {
 		$noversion    = new DataObject();
 		$versioned    = new VersionedTest_DataObject();
 		$versionedSub = new VersionedTest_Subclass();
+		$versionedAno = new VersionedTest_AnotherSubclass();
 		$versionField = new VersionedTest_UnversionedWithField();
 
 		$this->assertFalse(
@@ -333,6 +346,10 @@ class VersionedTest extends SapphireTest {
 		$this->assertEquals(
 			'Int', $versionedSub->hasOwnTableDatabaseField('Version'),
 			'Sub-classes of a versioned model have a Version field.'
+		);
+		$this->assertEquals(
+				'Int', $versionedAno->hasOwnTableDatabaseField('Version'),
+				'Sub-classes of a versioned model have a Version field.'
 		);
 		$this->assertEquals(
 			'Varchar', $versionField->hasOwnTableDatabaseField('Version'),
